@@ -53,7 +53,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("Not(", Parser, ")");
+            return string.Concat("!(", Parser, ")");
         }
     }
 }

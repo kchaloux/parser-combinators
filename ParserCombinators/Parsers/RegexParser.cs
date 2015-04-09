@@ -47,7 +47,7 @@ namespace ParserCombinators
             return (match.Success && match.Index == index)
                     ? (IParseResult<string>)new ParseSuccess<string>(match.Value, match.Value, index)
                     : new ParseFail<string>(index,
-                        string.Concat("Expected text to match the pattern /", _regex, "/ at index ", index));
+                        string.Concat("Expected /", _regex, "/ at index ", index));
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("Regex(", _regex.ToString(), ")");
+            return string.Concat("/", _regex, "/");
         }
     }
 }

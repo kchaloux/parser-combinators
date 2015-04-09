@@ -42,6 +42,7 @@ namespace ParserCombinators
             if (!_isParserGenerated)
             {
                 _parser = _generate();
+                _isParserGenerated = true;
             }
 
             return _parser.Parse(input, index);
@@ -56,9 +57,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return (_isParserGenerated)
-                ? string.Concat("Lazy(", _parser.ToString(), ")")
-                : string.Concat("Lazy<", typeof(T).Name, ">(... unevaluated ...)");
+            return "[Lazy]";
         }
     }
 }
