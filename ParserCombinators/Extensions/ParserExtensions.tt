@@ -1,0 +1,107 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+<#  const string ClassName = "ParserExtensions";
+    const string BaseParserType = "Parser";
+    const string SequenceResultType = "SequenceResult";
+    const string ConversionParserType = "ConversionParser";
+    const int NumberOfTypes = 32;
+#>
+/* ============================================================================
+ * ParserCombinators
+ * ----------------------------------------------------------------------------
+ * <#= ClassName #>.g.cs
+ *   Last Generated on 2/17/2015 @ 10:41 PM
+ *   Written by kchaloux
+ * NOTE - THIS IS AN AUTO-GENERATED FILE, AND SHOULD NOT BE EDITED MANUALLY
+ * ========================================================================= */
+
+using System;
+using System.Runtime.CompilerServices;
+
+namespace ParserCombinators
+{
+    /// <summary>
+    /// Contains extension methods related to parsing.
+    /// </summary>
+    public static partial class <#= ClassName #>
+    {
+        // Sequence-Parser Extensions ===============================================
+
+<#  for (int i = 2; i <= NumberOfTypes; ++i) { 
+        var typeNames = Enumerable.Range(1, i).Select(n => string.Concat("T", n)).ToList();
+        var typeString = string.Join(", ", typeNames);
+        var resultType = string.Concat(string.Join("<", Enumerable.Repeat(SequenceResultType, i - 1)), "<", typeNames[0], ", ", string.Join(">, ", typeNames.Skip(1)), ">");
+        var parserType = string.Concat(BaseParserType, "<", string.Join("<", Enumerable.Repeat(SequenceResultType, i - 1)), "<", typeNames[0], ", ", string.Join(">, ", typeNames.Skip(1)), ">>");
+#>
+        // <#= SequenceResultType #> <#= i #> ==================
+<#		for (int j = 0; j < i; ++j) { 
+            var nextAccessors = (j == 0) ? new string[0] : new[] { "Next" };
+            var accessString = string.Join(".", Enumerable.Repeat("First", i - j - 1).Concat(nextAccessors));
+#>
+        /// <summary>
+        ///	Gets the <#= GetOrdinal(j + 1) #> item of a chained <see cref="<#= SequenceResultType #>{T1, T2}"/>.
+        /// </summary>
+<#          for (int k = 0; k < i; ++k) { #>
+        /// <typeparam name="<#= typeNames[k] #>">The type of the <#= GetOrdinal(k + 1) #> element in this result.</typeparam>
+<#          } #>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static <#= typeNames[j] #> Item<#= j + 1 #><<#= typeString #>>(this <#= resultType #> result)
+        {
+            return result.<#= accessString #>;
+        }
+
+<#		} #>
+<#  if (i <= 16) { #>
+        /// <summary>
+        /// Creates a new <see cref="ConversionParser{T, TOut}"/> that will
+        /// attempt to convert the result of this parser into a new form.
+        /// </summary>
+<#      for (int j = 0; j < i; ++j) { #>
+        /// <typeparam name="<#= typeNames[j] #>">The type of the <#= GetOrdinal(j + 1) #> element in this result.</typeparam>
+<#      } #>
+        /// <typeparam name="TOut">Type of data that <see cref="ConversionParser{T, TOut}"/> will yield.</typeparam>
+        /// <param name="parser">The parser to conver the result of.</param>
+        /// <param name="convert">Function to convert this result into its desired form.</param>
+        /// <returns>A new <see cref="ConversionParser{T, TOut}"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static <#= ConversionParserType #><<#= resultType #>, TOut> As<<#= typeString #>, TOut>(this <#= parserType #> parser, Func<<#= typeString #>, TOut> convert)
+        {
+            return new <#= ConversionParserType #><<#= resultType #>, TOut>(
+                parser,
+                res => convert(
+<#      for (int j = 0; j < i; ++j) { 
+            var nextAccessors = (j == 0) ? new string[0] : new[] { "Next" };
+            var accessString = string.Join(".", Enumerable.Repeat("First", i - j - 1).Concat(nextAccessors));
+#>
+                    res.<#= accessString #><#= (j == i - 1) ? "));" : "," #>
+<#      } #>
+        }
+<#  } #>
+        // End <#= SequenceResultType #> <#= i #> ==============
+
+<#  } #>
+        // End Sequence-Parser Extensions ===========================================
+    }
+}
+<#+ 
+public string GetOrdinal(int n)
+{
+    var mod100 = n % 100;
+    if (mod100 > 10 && mod100 < 20)
+    {
+        return string.Concat(n, "th");
+    }
+
+    switch (n % 10)
+    {
+        case 1: return string.Concat(n, "st");
+        case 2: return string.Concat(n, "nd");
+        case 3: return string.Concat(n, "rd");
+        default: return string.Concat(n, "th");
+    }
+}
+#>

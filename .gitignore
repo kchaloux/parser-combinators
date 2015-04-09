@@ -1,0 +1,14 @@
+build/
+[Bb]in
+[Dd]ebug*/
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est*/
+*.obj
+*.suo
+*.DotSettings
+*.user
+*.cache
+*.bak
+*.userprefs
