@@ -32,7 +32,7 @@ namespace ParserCombinators
         /// <summary>
         /// Gets whether or not the parsing operation was successful.
         /// </summary>
-        public bool Success { get; private set; }
+        public bool Success { get { return true; } }
 
         /// <summary>
         /// Gets the final converted value of a successfully parsed string.
@@ -56,7 +56,6 @@ namespace ParserCombinators
             Value = value;
             Index = index;
             Length = text.Length;
-            Success = true;
             Message = "";
         }
 

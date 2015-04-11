@@ -6,6 +6,8 @@
  *   Written by kchaloux
  * ========================================================================= */
 
+using System.Runtime.CompilerServices;
+
 namespace ParserCombinators
 {
     /// <summary>
@@ -49,16 +51,45 @@ namespace ParserCombinators
             {
                 return new ParseSuccess<T>(result1.Text, result1.Value, index);
             }
-
+            
             var result2 = Parser2.Parse(input, index);
             if (result2.Success)
             {
                 return new ParseSuccess<T>(result2.Text, result2.Value, index);
             }
 
-            return new ParseFail<T>(index,
+            var failure1 = (ParseFail<T>)result1;
+            var failure2 = (ParseFail<T>)result2;
+
+            if (failure1.FailureType == FailureType.Termination)
+            {
+                return failure1;
+            }
+
+            if (failure2.FailureType == FailureType.Termination)
+            {
+                return failure2;
+            }
+
+            return new ParseFail<T>(
+                failure2.FailureType,
+                index,
                 string.Concat("Expected at least one of the following at index ", index, ": ",
                     string.Join(", ", Parser1, Parser2)));
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="EndParser{T}"/> that wraps the current parser
+        /// and fails if it does not terminate at the end of the given input.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="EndParser{T}"/> that fails if the current 
+        /// parser does not terminate at the end of the given input.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override Parser<T> End()
+        {
+            return new OrParser<T>(Parser1.End(), Parser2.End());
         }
 
         /// <summary>

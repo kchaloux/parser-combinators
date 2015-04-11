@@ -39,9 +39,15 @@ namespace ParserCombinators
         public override IParseResult<T> Parse(string input, int index)
         {
             var result = Parser.Parse(input, index);
-            return (result.Success)
-                ? (IParseResult<T>)new ParseFail<T>(result, string.Concat("Expected not to match ", Parser, " at index ", index, "."))
-                : new ParseSuccess<T>("", default(T), index);
+            if (!result.Success)
+            {
+                return new ParseSuccess<T>("", default(T), index);
+            }
+            
+            return new ParseFail<T>(
+                result,
+                FailureType.Inversion,
+                string.Concat("Expected not to match ", Parser, " at index ", index));
         }
 
         /// <summary>

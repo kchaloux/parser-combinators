@@ -1,183 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 
 namespace ParserCombinators
 {
     internal class Program
     {
-        #region Syntax Classes
-        
-        interface ILiteral
+        struct Fish
         {
-            object Value { get; }
-        }
+            public string Species { get { return _species; } }
+            private readonly string _species;
 
-        interface IExpression
-        {
-        }
+            public string Body { get { return _body; } }
+            private readonly string _body;
 
-        class ArgumentsList
-        {
-            public IReadOnlyList<IExpression> Arguments { get { return _arguments; } }
-            private readonly IReadOnlyList<IExpression> _arguments;
-
-            public ArgumentsList(IEnumerable<IExpression> arguments)
+            public Fish(string species, string body)
             {
-                _arguments = new List<IExpression>(arguments);
+                _species = species;
+                _body = body;
             }
 
             public override string ToString()
             {
-                return string.Concat("Args(", string.Join(", ", _arguments), ")");
+                return string.Concat(Species, "[ \"", Body, "\" ]");
             }
         }
-
-        class Function : IExpression
-        {
-            public Identifier Identifier { get { return _identifier; } }
-            private readonly Identifier _identifier;
-
-            public ArgumentsList Arguments { get { return _arguments; } }
-            private readonly ArgumentsList _arguments;
-
-            public Function(Identifier identifier, ArgumentsList arguments)
-            {
-                _identifier = identifier;
-                _arguments = arguments;
-            }
-
-            public override string ToString()
-            {
-                return string.Concat("Function(", Identifier, ", ", Arguments, ")");
-            }
-        }
-
-        class Identifier : IExpression
-        {
-            public string Name { get { return _name; } }
-            private readonly string _name;
-
-            public Identifier(string name)
-            {
-                _name = name;
-            }
-
-            public override string ToString()
-            {
-                return string.Concat("Identifier(", Name, ")");
-            }
-        }
-
-        class LiteralString : IExpression, ILiteral
-        {
-            public object Value { get { return _value; } }
-            private readonly string _value;
-
-            public LiteralString(string value)
-            {
-                _value = value;
-            }
-
-            public override string ToString()
-            {
-                return string.Concat("String(\"", Value, "\")");
-            }
-        }
-
-        class LiteralInteger : IExpression, ILiteral
-        {
-            public object Value { get { return _value; } }
-            private readonly int _value;
-
-            public LiteralInteger(int value)
-            {
-                _value = value;
-            }
-
-            public override string ToString()
-            {
-                return string.Concat("Integer(", Value, ")");
-            }
-        }
-
-        class LiteralDouble : IExpression, ILiteral
-        {
-            public object Value { get { return _value; } }
-            private readonly double _value;
-
-            public LiteralDouble(double value)
-            {
-                _value = value;
-            }
-
-            public override string ToString()
-            {
-                return string.Concat("Double(", Value, ")");
-            }
-        }
-        #endregion
-
-        static Parser<Identifier> IdentifierParser { get; set; }
-        static Parser<ILiteral> LiteralParser { get; set; }
-        static Parser<IExpression> ExpressionParser { get; set; }
-        static Parser<Function> FunctionParser { get; set; }
-        static Parser<ArgumentsList> ArgumentsListParser { get; set; }
 
         private static void Main(string[] args)
-        {
-            Parser<LiteralString> literalStringParser = 
-                new RegexParser("\"([^\"]+)\"")
-                    .As(x => new LiteralString(x.Substring(1, x.Length - 2)));
+        {  
+            var normalFish = new LiteralParser("><>").Or(new LiteralParser("<><")).As(x => new Fish("Normal", x));
+            var sturdyFish = new LiteralParser("><>>").Or(new LiteralParser("<<><")).As(x => new Fish("Sturdy", x));
+            var speedyFish = new LiteralParser(">><>").Or(new LiteralParser("<><<")).As(x => new Fish("Speedy", x));
+            var stretchyFish = new LiteralParser("><>>>").Or(new LiteralParser("<<<><")).As(x => new Fish("Stretchy", x));
+            var crab = new LiteralParser(",<..>,").As(x => new Fish("Crab", x));
 
-            Parser<LiteralInteger> literalIntegerParser =
-                new RegexParser(@"\d+")
-                    .As(x => new LiteralInteger(int.Parse(x)));
-
-            Parser<LiteralDouble> literalDoubleParser =
-                new RegexParser(@"-?(((\.\d+|\d+\.\d*)([eE]-?\d+)?)|Infinity|NaN)")
-                    .As(x => new LiteralDouble(double.Parse(x)));
-
-            IdentifierParser =
-                new RegexParser(@"[a-zA-Z_][a-zA-Z0-9_]*")
-                    .As(x => new Identifier(x));
-
-            LiteralParser =
-                literalStringParser.As(x => (ILiteral)x)
-                    .Or(literalDoubleParser.As(x => (ILiteral)x))
-                    .Or(literalIntegerParser.As(x => (ILiteral)x));
-
-            var openParenParser = new RegexParser(@"\(\s*");
-            var closeParenParser = new RegexParser(@"\s*\)");
-
-            var nullaryFunctionParser =
-                openParenParser
-                    .Then(IdentifierParser)
-                    .Then(closeParenParser)
-                    .As((a1, ident, a2) => new Function(ident, new ArgumentsList(new IExpression[0])));
-
-            var polyaryFunctionParser =
-                Lazy.Parser(() =>
-                    openParenParser.Then(IdentifierParser)
-                        .ThenPattern(@"\s*")
-                        .Then(ArgumentsListParser)
-                        .Then(closeParenParser)
-                        .As((a1, ident, a2, arg, a3) => new Function(ident, arg)));
-
-            FunctionParser = nullaryFunctionParser.Or(polyaryFunctionParser);
-            
-            ExpressionParser =
-                new LazyParser<IExpression>(() => 
-                    LiteralParser.As(x => (IExpression)x)
-                        .Or(IdentifierParser.As(x => (IExpression)x))
-                        .Or(FunctionParser.As(x => (IExpression)x)));
-
-            ArgumentsListParser =
-                new LazyParser<ArgumentsList>(() =>
-                    ExpressionParser.Repeat1().WithSepPattern(@"\s*")
-                        .As(xs => new ArgumentsList(xs)));
+            var parser = crab.Or(stretchyFish).Or(speedyFish).Or(sturdyFish).Or(normalFish).Repeat1().End();
 
             while (true)
             {
@@ -188,10 +45,12 @@ namespace ParserCombinators
                     break;
                 }
 
-                var parsedData = FunctionParser.Parse(input);
-
-                Console.WriteLine("Parsed As: ");
-                Console.WriteLine("{0}", parsedData);
+                var result = parser.Parse(input);
+                Console.WriteLine(result);
+                if (result.Success)
+                {
+                    Console.WriteLine(string.Join(Environment.NewLine, result.Value));
+                }
             }
             Console.ReadLine();
         }

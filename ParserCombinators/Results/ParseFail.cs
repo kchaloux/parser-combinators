@@ -6,6 +6,9 @@
  *   Written by kchaloux
  * ========================================================================= */
 
+using System.ComponentModel;
+using System.Linq;
+
 namespace ParserCombinators
 {
     /// <summary>
@@ -32,7 +35,7 @@ namespace ParserCombinators
         /// <summary>
         /// Gets whether or not the parsing operation was successful.
         /// </summary>
-        public bool Success { get; private set; }
+        public bool Success { get { return false; } }
 
         /// <summary>
         /// Gets the final converted value of a successfully parsed string.
@@ -45,12 +48,18 @@ namespace ParserCombinators
         public string Message { get; private set; }
 
         /// <summary>
+        /// Gets the general cause of the failure.
+        /// </summary>
+        public FailureType FailureType { get; private set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="failureType">The general cause of the failure.</param>
         /// <param name="index">Index of the string that the parsing operation began on.</param>
         /// <param name="message">A message associated with this failed parsing operation.</param>
-        public ParseFail(int index, string message = "")
-            : this(new ParseSuccess<T>("", default(T), index), message)
+        public ParseFail(FailureType failureType, int index, string message = "")
+            : this(new ParseSuccess<T>("", default(T), index), failureType, message)
         {
         }
 
@@ -58,15 +67,16 @@ namespace ParserCombinators
         /// Constructor.
         /// </summary>
         /// <param name="result">Another result to wrap and convert to a failure.</param>
+        /// <param name="failureType">The general cause of the failure.</param>
         /// <param name="message">A message associated with this failed parsing operation.</param>
-        public ParseFail(IParseResult<T> result, string message = "")
+        public ParseFail(IParseResult<T> result, FailureType failureType, string message = "")
         {
-            Success = false;
             Text = result.Text;
             Index = result.Index;
             Length = 0;
             Value = result.Value;
             Message = message;
+            FailureType = failureType;
         }
 
         /// <summary>
@@ -78,7 +88,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("[Failure: ", Message, "]");
+            return string.Concat("[Failure(", FailureType, "): ", Message, "]");
         }
     }
 }

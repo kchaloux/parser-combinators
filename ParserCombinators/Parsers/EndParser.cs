@@ -1,35 +1,35 @@
 ﻿/* ============================================================================
  * ParserCombinators
  * ----------------------------------------------------------------------------
- * LazyParser.cs
- *   Created on 2/17/2015 @ 9:05 PM
+ * EndParser.cs
+ *   Created on 4/11/2015 @ 1:12 PM
  *   Written by kchaloux
  * ========================================================================= */
 
-using System;
 using System.Runtime.CompilerServices;
 
 namespace ParserCombinators
 {
     /// <summary>
-    /// A parser that defers the evaluation of its
-    /// inner parser until its first call to <see cref="Parse(string, int)"/>.
+    /// A parser that fails if it is does not terminate at the end of the input.
     /// </summary>
-    public class LazyParser<T> : Parser<T>
+    /// <typeparam name="T">Type of data being parsed.</typeparam>
+    public class EndParser<T> : Parser<T>
     {
-        private readonly Func<Parser<T>> _generate;
-        private Parser<T> _parser;
-        private bool _isParserGenerated;
+        #region Properties
+        /// <summary>
+        /// Gets the parser to match at the end of the input.
+        /// </summary>
+        public Parser<T> Parser { get; private set; }
+        #endregion
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="generate">A function used to generate an instance of a parser.</param>
-        public LazyParser(Func<Parser<T>> generate)
+        /// <param name="parser">The parser to match at the end of the input.</param>
+        public EndParser(Parser<T> parser)
         {
-            _generate = generate;
-            _parser = null;
-            _isParserGenerated = false;
+            Parser = parser;
         }
 
         /// <summary>
@@ -40,13 +40,22 @@ namespace ParserCombinators
         /// <returns>An <see cref="IParseResult{T}"/> containing the parsed value.</returns>
         public override IParseResult<T> Parse(string input, int index)
         {
-            if (!_isParserGenerated)
+            var result = Parser.Parse(input, index);
+            if (!result.Success)
             {
-                _parser = _generate();
-                _isParserGenerated = true;
+                return result;
             }
 
-            return _parser.Parse(input, index);
+            var i = index + result.Length;
+            if (i == input.Length)
+            {
+                return result;
+            }
+
+            return new ParseFail<T>(
+                FailureType.Termination,
+                i,
+                string.Concat("Expected EOF at index ", i, ", found '", input[i]));
         }
 
         /// <summary>
@@ -60,9 +69,7 @@ namespace ParserCombinators
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override Parser<T> End()
         {
-            return _isParserGenerated
-                ? _parser.End()
-                : new InverseParser<T>(new LazyParser<T>(() => _generate().End()));
+            return this;
         }
 
         /// <summary>
@@ -74,7 +81,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("[LAZY<", typeof(T), ">]");
+            return Parser.ToString();
         }
     }
 }

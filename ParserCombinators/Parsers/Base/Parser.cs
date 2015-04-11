@@ -64,7 +64,7 @@ namespace ParserCombinators
         /// chain this together with another parser, so that each much be
         /// matched in sequence to succeed.
         /// </summary>
-        /// <typeparam name="TNext">Type of <see cref="IParser{T}"/> to chain in sequence with this one.</typeparam>
+        /// <typeparam name="TNext">Type of <see cref="Parser{T}"/> to chain in sequence with this one.</typeparam>
         /// <param name="next">The next parser to chain in sequence with this one.</param>
         /// <returns>A new <see cref="SequenceParser{T1, T2}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,6 +158,20 @@ namespace ParserCombinators
         public  Parser<TOut> As<TOut>(Func<T, TOut> convert)
         {
             return new ConversionParser<T, TOut>(this, convert);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="EndParser{T}"/> that wraps the current parser
+        /// and fails if it does not terminate at the end of the given input.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="EndParser{T}"/> that fails if the current 
+        /// parser does not terminate at the end of the given input.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual Parser<T> End()
+        {
+            return new EndParser<T>(this);
         }
     }
 }

@@ -49,7 +49,8 @@ namespace ParserCombinators
             var result = Parser.Parse(input, index);
             if (!result.Success)
             {
-                return new ParseFail<TOut>(index, result.Message);
+                var failure = (ParseFail<TIn>)result;
+                return new ParseFail<TOut>(failure.FailureType, failure.Index, result.Message);
             }
 
             try
@@ -58,7 +59,10 @@ namespace ParserCombinators
             }
             catch (Exception ex)
             {
-                return new ParseFail<TOut>(index, string.Concat("Failed to convert ", Parser, ": ", ex));
+                return new ParseFail<TOut>(
+                    FailureType.Conversion,
+                    index,
+                    string.Concat("Failed to convert ", Parser, ": ", ex));
             }
         }
 

@@ -52,27 +52,20 @@ namespace ParserCombinators
             var result1 = Parser1.Parse(input, i);
             if (!result1.Success)
             {
-                return new ParseFail<SequenceResult<T1, T2>>(result1.Index, result1.Message);
+                var failure = (ParseFail<T1>)result1;
+                return new ParseFail<SequenceResult<T1, T2>>(failure.FailureType, failure.Index, failure.Message);
             }
 
             i += result1.Length;
             var result2 = Parser2.Parse(input, i);
             if (!result2.Success)
             {
-                return new ParseFail<SequenceResult<T1, T2>>(result2.Index, result2.Message);
+                var failure = (ParseFail<T2>)result2;
+                return new ParseFail<SequenceResult<T1, T2>>(failure.FailureType, failure.Index, failure.Message);
             }
 
-            try
-            {
-                var value = new SequenceResult<T1, T2>(result1.Value, result2.Value);
-                return new ParseSuccess<SequenceResult<T1, T2>>(string.Concat(result1.Text, result2.Text), value, index);
-            }
-            catch (Exception ex)
-            {
-                return new ParseFail<SequenceResult<T1, T2>>(index,
-                    string.Concat("Failed to convert (", result1.Value, ", ", result2.Value, ") to type ",
-                        typeof(SequenceResult<T1, T2>).Name, ": ", ex.Message));
-            }
+            var value = new SequenceResult<T1, T2>(result1.Value, result2.Value);
+            return new ParseSuccess<SequenceResult<T1, T2>>(string.Concat(result1.Text, result2.Text), value, index);
         }
 
         /// <summary>

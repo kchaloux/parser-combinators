@@ -6,6 +6,8 @@
  *   Written by kchaloux
  * ========================================================================= */
 
+using System.Runtime.CompilerServices;
+
 namespace ParserCombinators
 {
     /// <summary>

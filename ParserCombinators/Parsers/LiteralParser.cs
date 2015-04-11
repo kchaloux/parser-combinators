@@ -40,10 +40,15 @@ namespace ParserCombinators
         public override IParseResult<string> Parse(string input, int index)
         {
             var i = input.IndexOf(Text, index, StringComparison.InvariantCulture);
-            return (i == index)
-                ? (IParseResult<string>)new ParseSuccess<string>(Text, Text, index)
-                : new ParseFail<string>(index,
-                    string.Concat("Expected \"", Text, "\" at index ", index));
+            if (i == index)
+            {
+                return new ParseSuccess<string>(Text, Text, index);
+            }
+
+            return new ParseFail<string>(
+                FailureType.Parsing,
+                index,
+                string.Concat("Expected \"", Text, "\" at index ", index));
         }
 
         /// <summary>

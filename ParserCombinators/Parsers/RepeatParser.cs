@@ -71,10 +71,15 @@ namespace ParserCombinators
                 i += result.Text.Length;
             }
 
-            return (results.Count >= MinRepetitions)
-                ? (IParseResult<IReadOnlyList<T>>)new ParseSuccess<IReadOnlyList<T>>(sb.ToString(), results, index)
-                : new ParseFail<IReadOnlyList<T>>(index, 
-                    string.Concat("Expected to match ", Parser, " at least ", MinRepetitions, " times. Actually matched ", results.Count, " times.")); 
+            if (results.Count >= MinRepetitions)
+            {
+                return new ParseSuccess<IReadOnlyList<T>>(sb.ToString(), results, index);
+            }
+
+            return new ParseFail<IReadOnlyList<T>>(
+                FailureType.Parsing,
+                index, 
+                string.Concat("Expected to match ", Parser, " at least ", MinRepetitions, " times. Actually matched ", results.Count, " times")); 
         }
 
         /// <summary>

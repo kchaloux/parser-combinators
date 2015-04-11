@@ -44,10 +44,15 @@ namespace ParserCombinators
         public override IParseResult<string> Parse(string input, int index)
         {
             var match = _regex.Match(input, index);
-            return (match.Success && match.Index == index)
-                    ? (IParseResult<string>)new ParseSuccess<string>(match.Value, match.Value, index)
-                    : new ParseFail<string>(index,
-                        string.Concat("Expected text to match the pattern /", _regex, "/ at index ", index));
+            if (match.Success && match.Index == index)
+            {
+                return new ParseSuccess<string>(match.Value, match.Value, index);
+            }
+
+            return new ParseFail<string>(
+                FailureType.Parsing,
+                index,
+                string.Concat("Expected text to match the pattern /", _regex, "/ at index ", index));
         }
 
         /// <summary>
