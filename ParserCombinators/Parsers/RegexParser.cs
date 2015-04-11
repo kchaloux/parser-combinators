@@ -64,7 +64,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("Regex(", _regex.ToString(), ")");
+            return string.Concat("/", _regex, "/");
         }
     }
 }

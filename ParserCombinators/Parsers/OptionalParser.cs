@@ -56,7 +56,7 @@ namespace ParserCombinators
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Concat("Optional(", Parser, ")");
+            return string.Concat("(", Parser, ")?");
         }
     }
 }
