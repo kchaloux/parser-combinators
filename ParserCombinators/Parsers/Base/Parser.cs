@@ -120,9 +120,9 @@ namespace ParserCombinators
         /// <param name="or">Other parser to match upon failing this parser.</param>
         /// <returns>A new <see cref="OrParser{T}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Parser<T> Or(Parser<T> or)
+        public virtual Parser<T> Or(Parser<T> or)
         {
-            return new OrParser<T>(this, or);
+            return new OrParser<T>(new[] { this, or });
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace ParserCombinators
         /// <param name="convert">Function to convert this result into its desired form.</param>
         /// <returns>A new <see cref="ConversionParser{T, TOut}"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public  Parser<TOut> As<TOut>(Func<T, TOut> convert)
+        public Parser<TOut> As<TOut>(Func<T, TOut> convert)
         {
             return new ConversionParser<T, TOut>(this, convert);
         }
